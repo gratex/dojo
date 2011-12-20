@@ -265,7 +265,7 @@ define([
 						// getAttribute() doesn't work for button.value, returns innerHTML of button.
 						// but getAttributeNode().value doesn't work for the form.encType or li.value
 						value: (node.nodeName == "LI" && name == "value") || lcName == "enctype" ?
-							node.getAttribute(lcName) : node.getAttributeNode(lcName).value
+							node.getAttribute(lcName) : (lcName == "" ? "" : node.getAttributeNode(lcName).value)
 					};
 				});
 			}
