@@ -23,7 +23,7 @@ return declare("dojo.store.DataStore", base, {
 		//		This provides any configuration information that will be mixed into the store,
 		//		including a reference to the Dojo data store under the property "store".
 		lang.mixin(this, options);
- 		if(!"idProperty" in options){
+ 		if(!("idProperty" in options)){
 			var idAttribute; 
 			try{
 				idAttribute = this.store.getIdentityAttributes(); 
@@ -32,7 +32,7 @@ return declare("dojo.store.DataStore", base, {
 	 		// but some other do and throw errors in that case. 
 			} 
 			// if no idAttribute we have implicit id 
-			this.idProperty = (!idAttribute || !idAttributes[0]) || this.idProperty; 
+			this.idProperty = (lang.isArray(idAttribute) ? idAttribute[0] : idAttribute) || this.idProperty;
 		}
 		var features = this.store.getFeatures();
 		// check the feature set and null out any methods that shouldn't be available
