@@ -54,7 +54,7 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 		//		in environments that have has("bug-for-in-skips-shadowed") true.
 		_extraNames:_extraNames,
 
-		_mixin: function(dest, source, copyFunc){
+		__mixin: function(dest, source, copyFunc){
 			// summary:
 			//		Copies/adds all properties of source to dest; returns dest.
 			// dest: Object
@@ -80,19 +80,6 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 					dest[name] = copyFunc ? copyFunc(s) : s;
 				}
 			}
-
-			if(has("bug-for-in-skips-shadowed")){
-				if(source){
-					for(i = 0; i < _extraLen; ++i){
-						name = _extraNames[i];
-						s = source[name];
-						if(!(name in dest) || (dest[name] !== s && (!(name in empty) || empty[name] !== s))){
-							dest[name] = copyFunc ? copyFunc(s) : s;
-						}
-					}
-				}
-			}
-
 			return dest; // Object
 		},
 
@@ -597,6 +584,22 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 				map : function(_, k){ return lang.getObject(k, false, map); });
 		}
 	};
+
+	lang._mixin = !has("bug-for-in-skips-shadowed") ? lang.__mixin : function(dest, source, copyFunc){
+		// non standard (MSIE 6 ?) vs standad behavior. Extracted from _mixin() function body
+		var name, s, i, empty = {};
+		dest = lang.__mixin(dest, source, copyFunc);
+		if(source){
+			for(i = 0; i < _extraLen; ++i){
+				name = _extraNames[i];
+				s = source[name];
+				if(!(name in dest) || (dest[name] !== s && (!(name in empty) || empty[name] !== s))){
+					dest[name] = copyFunc ? copyFunc(s) : s;
+				}
+			}
+		}
+		return dest;
+	}
 
 	has("extend-dojo") && lang.mixin(dojo, lang);
 
