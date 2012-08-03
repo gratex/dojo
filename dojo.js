@@ -720,12 +720,26 @@
 			comboPendingTimer = null;
 	}
 
-
+	req._cached=req._fresh=0;
 	// build the loader machinery iaw configuration, including has feature tests
 	var	injectDependencies = function(module){
 			// checkComplete!=0 holds the idle signal; we're not idle if we're injecting dependencies
 			guardCheckComplete(function(){
-				forEach(module.deps, injectModule);
+				//forEach(module.deps, injectModule);
+				if(module.deps){
+					for(var i=0,l=module.deps.length;i<l;i++){
+						var m=module.deps[i],
+						mid = m.mid,
+						url = m.url;
+						if(m.executed || m.injected || waiting[mid] || (m.url && ((m.pack && waiting[m.url]===m.pack) || waiting[m.url]==1))){
+							req._cached++;
+						}
+						else{
+							req._fresh++;
+							injectModule(m);
+						}
+					} 
+				}
 				if(has("dojo-combo-api") && comboPending && !comboPendingTimer){
 					comboPendingTimer = setTimeout(function() {
 						comboPending = 0;
