@@ -462,6 +462,13 @@
 						m = getModuleInfo(p, referenceModule);
 						cache[m.mid] = cache[urlKeyPrefix + m.url] = item;
 					}
+					if (window) {
+						if (!window.loadedFromCache) {
+							window.loadedFromCache = {};
+						}
+						
+						window.loadedFromCache[getModuleInfo(p, referenceModule).mid] = 0;
+					}
 				}
 				if(now){
 					now(createRequire(referenceModule));
@@ -1445,6 +1452,10 @@
 				cached = cache[mid] || cache[urlKeyPrefix + module.url];
 				if(cached){
 					req.trace("loader-inject", ["cache", module.mid, url]);
+					if (window) {
+						window.loadedFromCache[module.mid]++;
+					}
+					
 					evalModuleText(cached, module);
 					onLoadCallback();
 					return;
