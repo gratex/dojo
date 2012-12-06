@@ -1705,9 +1705,10 @@
 							callback && callback();
 						}
 					},
-					loadDisconnector = domOn(node, "load", "onreadystatechange", onLoad),
+					//AR: use onLoad event if it is availible to work correctly also in IE9
+					loadDisconnector = domOn(node, "load", ("onload" in node) ? "load" : "onreadystatechange", onLoad),
 					errorDisconnector = domOn(node, "error", "onerror", function(e){
-						loadDisconnector();
+						loadDisconnector(); 
 						errorDisconnector();
 						signal(error, makeError("scriptError", [url, e]));
 					});
