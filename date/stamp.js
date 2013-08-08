@@ -45,7 +45,7 @@ stamp.fromISOString = function(/*String*/ formattedString, /*Number?*/ defaultTi
 	if(!stamp._isoRegExp){
 		stamp._isoRegExp =
 //TODO: could be more restrictive and check for 00-59, etc.
-			/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(.\d+)?)?((?:[+-](\d{2}):(\d{2}))|Z)?)?$/;
+			/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(.\d+)?)?((?:[+-](\d{2}):?(\d{2}))|Z)?)?$/;
 	}
 
 	var match = stamp._isoRegExp.exec(formattedString),
