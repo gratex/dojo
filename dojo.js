@@ -459,7 +459,9 @@
 					}else if(p=="*now"){
 						now = item;
 					}else if(p!="*noref"){
-						m = getModuleInfo(p, referenceModule);
+						//temp fix for https://bugs.dojotoolkit.org/ticket/17475
+//						m = getModuleInfo(p, referenceModule);
+						m = getModuleInfo_(p, referenceModule, packs, modules, req.baseUrl, [], pathsMapProg, aliases);
 						cache[m.mid] = cache[urlKeyPrefix + m.url] = item;
 					}
 					if (window) {
