@@ -1708,10 +1708,10 @@
 						}
 					},
 					//AR: use onLoad event if it is availible to work correctly also in IE9
-					//AR: commented out again, because codemirror stopped working in IE9
-					loadDisconnector = domOn(node, "load", /*("onload" in node) ? "load" :*/ "onreadystatechange", onLoad),
+					//AR: used to cause codemirror to stop working in IE9, but seems to be OK now
+					loadDisconnector = domOn(node, "load", ("onload" in node) ? "onload" : "onreadystatechange", onLoad),
 					errorDisconnector = domOn(node, "error", "onerror", function(e){
-						loadDisconnector(); 
+						loadDisconnector();
 						errorDisconnector();
 						signal(error, makeError("scriptError", [url, e]));
 					});
