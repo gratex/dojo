@@ -1,7 +1,7 @@
 define([
-	"doh",
-	"dojo/_base/declare",  "dojo/Evented", "dojo/has", "dojo/on", "dojo/query", "dojo/topic"
-], function(doh, declare, Evented, has, on, query, topic){
+	"doh", "require",
+	"dojo/_base/declare",  "dojo/Evented", "dojo/has", "dojo/on", "dojo/query", "dojo/topic", "dojo/dom-construct"
+], function(doh, require, declare, Evented, has, on, query, topic, domConstruct){
 
 	doh.register("tests.on", [
 		function object(t){
@@ -153,6 +153,19 @@ define([
 			signal.remove();
 			signal2.remove();
 
+			// make sure 'document' and 'window' can also emit events
+			var eventEmitted;
+			var iframe = domConstruct.place('<iframe></iframe>', document.body);
+			var globalObjects = [document, window, iframe.contentWindow, iframe.contentDocument || iframe.contentWindow.document];
+			for(var i = 0, len = globalObjects.length; i < len; i++) {
+				eventEmitted = false;
+				on(globalObjects[i], 'custom-test-event', function () {
+					eventEmitted = true;
+				});
+				on.emit(globalObjects[i], 'custom-test-event', {});
+				t.is(true, eventEmitted);
+			}
+
 			// test out event delegation
 			if(query){
 				// if dojo.query is loaded, test event delegation
@@ -297,4 +310,8 @@ define([
 			t.is(testValue, 3);
 		}
 	]);
+
+	if(has("host-browser")){
+		doh.registerUrl("tests.on.event-focusin", require.toUrl("./event-focusin.html"), 30000);
+	}
 });
