@@ -26,7 +26,7 @@ define(["require", "module"], function(require, module){
 				window.location == location && window.document == document,
 
 			// has API variables
-			global = this,
+			global = (function () { return this; })(),
 			doc = isBrowser && document,
 			element = doc && doc.createElement("DiV"),
 			cache = (module.config && module.config()) || {};
@@ -90,6 +90,8 @@ define(["require", "module"], function(require, module){
 		// has as it would have otherwise been initialized by the dojo loader; use has.add to the builder
 		// can optimize these away iff desired
 		has.add("host-browser", isBrowser);
+		has.add("host-node", (typeof process == "object" && process.versions && process.versions.node && process.versions.v8));
+		has.add("host-rhino", (typeof load == "function" && (typeof Packages == "function" || typeof Packages == "object")));
 		has.add("dom", isBrowser);
 		has.add("dojo-dom-ready-api", 1);
 		has.add("dojo-sniff", 1);
@@ -98,7 +100,19 @@ define(["require", "module"], function(require, module){
 	if(has("host-browser")){
 		// Common application level tests
 		has.add("dom-addeventlistener", !!document.addEventListener);
-		has.add("touch", "ontouchstart" in document || window.navigator.msMaxTouchPoints > 0);
+
+		// Do the device and browser have touch capability?
+		has.add("touch", "ontouchstart" in document
+			|| ("onpointerdown" in document && navigator.maxTouchPoints > 0)
+			|| window.navigator.msMaxTouchPoints);
+
+		// Touch events support
+		has.add("touch-events", "ontouchstart" in document);
+
+		// Pointer Events support
+		has.add("pointer-events", "onpointerdown" in document);
+		has.add("MSPointer", "msMaxTouchPoints" in navigator); //IE10 (+IE11 preview)
+
 		// I don't know if any of these tests are really correct, just a rough guess
 		has.add("device-width", screen.availWidth || innerWidth);
 

@@ -305,7 +305,7 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 				target[name] = t;
 			}
 		}
-		if(has("bug-for-in-skips-shadowed")){
+		if(has("bug-for-in-skips-shadowed") && source){
 			for(var extraNames= lang._extraNames, i= extraNames.length; i;){
 				name = extraNames[--i];
 				t = source[name];
@@ -326,9 +326,18 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 		return this;
 	}
 
-	function createSubclass(mixins, props){
-		return declare([this].concat(mixins), props || {});
-	}
+    function createSubclass(mixins, props){
+        // crack parameters
+        if(!(mixins instanceof Array || typeof mixins == 'function')){
+            props = mixins;
+            mixins = undefined;
+        }
+
+        props = props || {};
+        mixins = mixins || [];
+
+        return declare([this].concat(mixins), props);
+    }
 
 	// chained constructor compatible with the legacy declare()
 	function chainedConstructor(bases, ctorSpecial){
@@ -1034,7 +1043,7 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 			//	|		d1: 42
 			//	|	});
 		},
-		
+
 		createSubclass: function(mixins, props){
 			// summary:
 			//		Create a subclass of the declared class from a list of base classes.
