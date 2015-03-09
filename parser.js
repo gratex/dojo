@@ -49,7 +49,11 @@ define([
 		//		Retrieves a constructor.  If the types array contains more than one class/MID then the
 		//		subsequent classes will be mixed into the first class and a unique constructor will be
 		//		returned for that array.
-
+		
+		//AR,LZ:cache absolute mids instead of relative, because of possible conflicts
+		var _require=contextRequire ? contextRequire:require;
+		types = darray.map(types, _require.toAbsMid);
+		
 		var ts = types.join();
 		if(!_ctorMap[ts]){
 			var mixins = [];
