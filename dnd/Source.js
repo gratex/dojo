@@ -495,7 +495,7 @@ var Source = declare("dojo.dnd.Source", Selector, {
 		// check for handles
 		for(var node = e.target; node && node !== this.node; node = node.parentNode){
 			if(domClass.contains(node, "dojoDndHandle")){ return true; }
-			if(domClass.contains(node, "dojoDndItem") || domClass.contains(node, "dojoDndIgnore")){ break; }
+			if(domClass.contains(node, this.dndItemClass) || domClass.contains(node, "dojoDndIgnore")){ break; }
 		}
 		return false;	// Boolean
 	}

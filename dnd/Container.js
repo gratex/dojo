@@ -53,6 +53,9 @@ var Container = declare("dojo.dnd.Container", Evented, {
 	//		the dojo/dnd/Container.Item itself.
 	map: {},
 	=====*/
+	
+	// AR: allow override class used to find item
+	dndItemClass: "dojoDndItem",
 
 	constructor: function(node, params){
 		// summary:
@@ -134,7 +137,7 @@ var Container = declare("dojo.dnd.Container", Evented, {
 	getAllNodes: function(){
 		// summary:
 		//		returns a list (an array) of all valid child nodes
-		return query((this.allowNested ? "" : "> ") + ".dojoDndItem", this.parent);	// NodeList
+		return query((this.allowNested ? "." : "> .") + this.dndItemClass, this.parent);	// NodeList
 	},
 	sync: function(){
 		// summary:
@@ -313,7 +316,7 @@ var Container = declare("dojo.dnd.Container", Evented, {
 		//		a node
 		// type: String
 		//		a variable suffix for a class name
-		domClass.add(node, "dojoDndItem" + type);
+		domClass.add(node, this.dndItemClass + type);
 	},
 	_removeItemClass: function(node, type){
 		// summary:
@@ -322,7 +325,7 @@ var Container = declare("dojo.dnd.Container", Evented, {
 		//		a node
 		// type: String
 		//		a variable suffix for a class name
-		domClass.remove(node, "dojoDndItem" + type);
+		domClass.remove(node, this.dndItemClass + type);
 	},
 	_getChildByEvent: function(e){
 		// summary:
@@ -332,7 +335,7 @@ var Container = declare("dojo.dnd.Container", Evented, {
 		var node = e.target;
 		if(node){
 			for(var parent = node.parentNode; parent; node = parent, parent = node.parentNode){
-				if((parent == this.parent || this.allowNested) && domClass.contains(node, "dojoDndItem")){ return node; }
+				if((parent == this.parent || this.allowNested) && domClass.contains(node, this.dndItemClass)){ return node; }
 			}
 		}
 		return null;
@@ -343,7 +346,7 @@ var Container = declare("dojo.dnd.Container", Evented, {
 		var t = (this.creator || this.defaultCreator).call(this, item, hint);
 		if(!lang.isArray(t.type)){ t.type = ["text"]; }
 		if(!t.node.id){ t.node.id = dnd.getUniqueId(); }
-		domClass.add(t.node, "dojoDndItem");
+		domClass.add(t.node, this.dndItemClass);
 		return t;
 	}
 });
