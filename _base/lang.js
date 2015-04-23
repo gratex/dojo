@@ -18,22 +18,33 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 		_extraLen = _extraNames.length,
 
 		getProp = function(/*Array*/parts, /*Boolean*/create, /*Object*/context){
-			var p, i = 0, dojoGlobal = dojo.global;
 			if(!context){
-				if(!parts.length){
-					return dojoGlobal;
+				if(parts[0] && dojo.scopeMap[parts[0]]) {
+					// Voodoo code from the old days where "dojo" or "dijit" maps to some special object
+					// rather than just window.dojo
+					context = dojo.scopeMap[parts.shift()][1];
 				}else{
-					p = parts[i++];
-					try{
-						context = dojo.scopeMap[p] && dojo.scopeMap[p][1];
-					}catch(e){}
-					context = context || (p in dojoGlobal ? dojoGlobal[p] : (create ? dojoGlobal[p] = {} : undefined));
+					context = dojo.global;
 				}
 			}
-			while(context && (p = parts[i++])){
-				context = (p in context ? context[p] : (create ? context[p] = {} : undefined));
+
+			try{
+				for(var i = 0; i < parts.length; i++){
+					var p = parts[i];
+					if(!(p in context)){
+						if(create){
+							context[p] = {};
+						}else{
+							return;		// return undefined
+						}
+					}
+					context = context[p];
+				}
+				return context; // mixed
+			}catch(e){
+				// "p in context" throws an exception when context is a number, boolean, etc. rather than an object,
+				// so in that corner case just return undefined (by having no return statement)
 			}
-			return context; // mixed
 		},
 
 		opts = Object.prototype.toString,
@@ -192,7 +203,7 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 			// context: Object?
 			//		Optional. Object to use as root of path. Defaults to
 			//		'dojo.global'. Null may be passed.
-			return getProp(name.split("."), create, context); // Object
+			return !name ? context : getProp(name.split("."), create, context); // Object
 		},
 
 		exists: function(name, obj){
@@ -232,13 +243,12 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 			return (typeof it == "string" || it instanceof String); // Boolean
 		},
 
-		isArray: function(it){
+		isArray: Array.isArray || function(it){
 			// summary:
 			//		Return true if it is an Array.
-			//		Does not work on Arrays created in other windows.
 			// it: anything
 			//		Item to test.
-			return it && (it instanceof Array || typeof it == "array"); // Boolean
+			return opts.call(it) == "[object Array]"; // Boolean
 		},
 
 		isFunction: function(it){
@@ -272,7 +282,7 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 			//		and DOM collections will return true when passed to
 			//		isArrayLike(), but will return false when passed to
 			//		isArray().
-			return it && it !== undefined && // Boolean
+			return !!it && // Boolean
 				// keep out built-in constructors (Number, String, ...) which have length
 				// properties
 				!lang.isString(it) && !lang.isFunction(it) &&
@@ -317,7 +327,7 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 
 		hitch: function(scope, method){
 			// summary:
-			//		Returns a function that will only ever execute in the a given scope.
+			//		Returns a function that will only ever execute in the given scope.
 			//		This allows for easy use of object member functions
 			//		in callbacks and other places in which the "this" keyword may
 			//		otherwise not reference the expected scope.
@@ -605,4 +615,3 @@ define(["./kernel", "../has", "../sniff"], function(dojo, has){
 
 	return lang;
 });
-

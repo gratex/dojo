@@ -10,6 +10,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 
 		// create dojo, dijit, and dojox
 		// FIXME: in 2.0 remove dijit, dojox being created by dojo
+		global = (function () { return this; })(),
 		dijit = {},
 		dojox = {},
 		dojo = {
@@ -18,7 +19,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 
 			// notice dojo takes ownership of the value of the config module
 			config:config,
-			global:this,
+			global:global,
 			dijit:dijit,
 			dojox:dojox
 		};
@@ -67,7 +68,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 		item = scopeMap[p];
 		item[1]._scopeName = item[0];
 		if(!config.noGlobals){
-			this[item[0]] = item[1];
+			global[item[0]] = item[1];
 		}
 	}
 	dojo.scopeMap = scopeMap;
@@ -92,7 +93,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 		//		- flag: String: Descriptor flag. If total version is "1.2.0beta1", will be "beta1"
 		//		- revision: Number: The Git rev from which dojo was pulled
 
-		major: 1, minor: 10, patch: 0, flag: "-pre",
+		major: 1, minor: 11, patch: 0, flag: "-pre",
 		revision: rev ? rev[0] : NaN,
 		toString: function(){
 			var v = dojo.version;
@@ -164,7 +165,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 				(function(){
 					var tcn = tn + "";
 					console[tcn] = ('log' in console) ? function(){
-						var a = Array.apply({}, arguments);
+						var a = Array.prototype.slice.call(arguments);
 						a.unshift(tcn + ":");
 						console["log"](a.join(" "));
 					} : function(){};
@@ -263,7 +264,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 			//	|	dojo.body().appendChild(img);
 			// example:
 			//		you may de-reference as far as you like down the package
-			//		hierarchy.  This is sometimes handy to avoid lenghty relative
+			//		hierarchy.  This is sometimes handy to avoid lengthy relative
 			//		urls or for building portable sub-packages. In this example,
 			//		the `acme.widget` and `acme.util` directories may be located
 			//		under different roots (see `dojo.registerModulePath`) but the

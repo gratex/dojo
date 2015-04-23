@@ -7,28 +7,32 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 		has.add("event-orientationchange", has("touch") && !has("android")); // TODO: how do we detect this?
 		has.add("event-stopimmediatepropagation", window.Event && !!window.Event.prototype && !!window.Event.prototype.stopImmediatePropagation);
 		has.add("event-focusin", function(global, doc, element){
-			return 'onfocusin' in element || (element.addEventListener && (function () {
-				var hasFocusInEvent = false;
-				function testFocus() {
-					hasFocusInEvent = true;
-				}
-
-				try {
-					var element = doc.createElement('input'),
-						activeElement = doc.activeElement;
-					element.style.position = 'fixed';
-					element.style.top = element.style.left = '0';
-					element.addEventListener('focusin', testFocus, false);
-					doc.body.appendChild(element);
-					element.focus();
-					doc.body.removeChild(element);
-					element.removeEventListener('focusin', testFocus, false);
-					activeElement.focus();
-				} catch (e) {}
-
-				return hasFocusInEvent;
-			})());
+			return 'onfocusin' in element;
 		});
+		
+		if(has("touch")){
+			has.add("touch-can-modify-event-delegate", function(){
+				// This feature test checks whether deleting a property of an event delegate works
+				// for a touch-enabled device. If it works, event delegation can be used as fallback
+				// for browsers such as Safari in older iOS where deleting properties of the original
+				// event does not work.
+				var EventDelegate = function(){};
+				EventDelegate.prototype =
+					document.createEvent("MouseEvents"); // original event
+				// Attempt to modify a property of an event delegate and check if
+				// it succeeds. Depending on browsers and on whether dojo/on's
+				// strict mode is stripped in a Dojo build, there are 3 known behaviors:
+				// it may either succeed, or raise an error, or fail to set the property
+				// without raising an error.
+				try{
+					var eventDelegate = new EventDelegate;
+					eventDelegate.target = null;
+					return eventDelegate.target === null;
+				}catch(e){
+					return false; // cannot use event delegation
+				}
+			});
+		}
 	}
 	var on = function(target, type, listener, dontFix){
 		// summary:
@@ -46,7 +50,7 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 		//		event.
 		// description:
 		//		To listen for "click" events on a button node, we can do:
-		//		|	define(["dojo/on"], function(listen){
+		//		|	define(["dojo/on"], function(on){
 		//		|		on(button, "click", clickHandler);
 		//		|		...
 		//		Evented JavaScript objects can also have their own events.
@@ -55,7 +59,7 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 		//		And then we could publish a "foo" event:
 		//		|	on.emit(obj, "foo", {key: "value"});
 		//		We can use extension events as well. For example, you could listen for a tap gesture:
-		//		|	define(["dojo/on", "dojo/gesture/tap", function(listen, tap){
+		//		|	define(["dojo/on", "dojo/gesture/tap", function(on, tap){
 		//		|		on(button, tap, tapHandler);
 		//		|		...
 		//		which would trigger fooHandler. Note that for a simple object this is equivalent to calling:
@@ -111,14 +115,19 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 			return type.call(matchesTarget, target, listener);
 		}
 
-		if(type.indexOf(",") > -1){
+		if(type instanceof Array){
+			// allow an array of event names (or event handler functions)
+			events = type;
+		}else if(type.indexOf(",") > -1){
 			// we allow comma delimited event names, so you can register for multiple events at once
 			var events = type.split(/\s*,\s*/);
+		} 
+		if(events){
 			var handles = [];
 			var i = 0;
 			var eventName;
 			while(eventName = events[i++]){
-				handles.push(addListener(target, eventName, listener, dontFix, matchesTarget));
+				handles.push(on.parse(target, eventName, listener, addListener, dontFix, matchesTarget));
 			}
 			handles.remove = function(){
 				for(var i = 0; i < handles.length; i++){
@@ -178,7 +187,42 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 		}
 		throw new Error("Target must be an event emitter");
 	}
+	on.matches = function(node, selector, context, children, matchesTarget) {
+		// summary:
+		//		Check if a node match the current selector within the constraint of a context
+		// node: DOMNode
+		//		The node that originate the event
+		// selector: String
+		//		The selector to check against
+		// context: DOMNode
+		//		The context to search in.
+		// children: Boolean
+		//		Indicates if children elements of the selector should be allowed. This defaults to
+		//		true
+		// matchesTarget: Object|dojo/query?
+		//		An object with a property "matches" as a function. Default is dojo/query.
+		//		Matching DOMNodes will be done against this function
+		//		The function must return a Boolean.
+		//		It will have 3 arguments: "node", "selector" and "context"
+		//		True is expected if "node" is matching the current "selector" in the passed "context"
+		// returns: DOMNode?
+		//		The matching node, if any. Else you get false
 
+		// see if we have a valid matchesTarget or default to dojo/query
+		matchesTarget = matchesTarget && matchesTarget.matches ? matchesTarget : dojo.query;
+		children = children !== false;
+		// there is a selector, so make sure it matches
+		if(node.nodeType != 1){
+			// text node will fail in native match selector
+			node = node.parentNode;
+		}
+		while(!matchesTarget.matches(node, selector, context)){
+			if(node == context || children === false || !(node = node.parentNode) || node.nodeType != 1){ // intentional assignment
+				return false;
+			}
+		}
+		return node;
+	}
 	on.selector = function(selector, eventType, children){
 		// summary:
 		//		Creates a new extension event with event delegation. This is based on
@@ -194,26 +238,14 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 		//		Indicates if children elements of the selector should be allowed. This defaults to 
 		//		true
 		// example:
-		// |	require(["dojo/on", "dojo/mouse", "dojo/query!css2"], function(listen, mouse){
+		// |	require(["dojo/on", "dojo/mouse", "dojo/query!css2"], function(on, mouse){
 		// |		on(node, on.selector(".my-class", mouse.enter), handlerForMyHover);
 		return function(target, listener){
 			// if the selector is function, use it to select the node, otherwise use the matches method
 			var matchesTarget = typeof selector == "function" ? {matches: selector} : this,
 				bubble = eventType.bubble;
 			function select(eventTarget){
-				// see if we have a valid matchesTarget or default to dojo/query
-				matchesTarget = matchesTarget && matchesTarget.matches ? matchesTarget : dojo.query;
-				// there is a selector, so make sure it matches
-				if(eventTarget.nodeType != 1){
-					// text node will fail in native match selector
-					eventTarget = eventTarget.parentNode;
-				}
-				while(!matchesTarget.matches(eventTarget, selector, target)){
-					if(eventTarget == target || children === false || !(eventTarget = eventTarget.parentNode) || eventTarget.nodeType != 1){ // intentional assignment
-						return;
-					}
-				}
-				return eventTarget;
+				return on.matches(eventTarget, selector, target, children, matchesTarget);
 			}
 			if(bubble){
 				// the event type doesn't naturally bubble, but has a bubbling form, use that, and give it the selector so it can perform the select itself
@@ -224,7 +256,9 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 				// call select to see if we match
 				var eventTarget = select(event.target);
 				// if it matches we call the listener
-				return eventTarget && listener.call(eventTarget, event);
+				if (eventTarget) {
+					return listener.call(eventTarget, event);
+				}
 			});
 		};
 	};
@@ -487,7 +521,7 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 		};
 	}
 	if(has("touch")){ 
-		var Event = function(){};
+		var EventDelegate = function(){};
 		var windowOrientation = window.orientation; 
 		var fixTouchListener = function(listener){ 
 			return function(originalEvent){ 
@@ -501,20 +535,22 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 				if(!event){
 					var type = originalEvent.type;
 					try{
-						delete originalEvent.type; // on some JS engines (android), deleting properties make them mutable
+						delete originalEvent.type; // on some JS engines (android), deleting properties makes them mutable
 					}catch(e){} 
 					if(originalEvent.type){
-						// deleting properties doesn't work (older iOS), have to use delegation
-						if(has('mozilla')){
-							// Firefox doesn't like delegated properties, so we have to copy
-							var event = {};
+						// Deleting the property of the original event did not work (this is the case of
+						// browsers such as older Safari iOS), hence fallback:
+						if(has("touch-can-modify-event-delegate")){
+							// If deleting properties of delegated event works, use event delegation:
+							EventDelegate.prototype = originalEvent;
+							event = new EventDelegate;
+						}else{
+							// Otherwise last fallback: other browsers, such as mobile Firefox, do not like
+							// delegated properties, so we have to copy
+							event = {};
 							for(var name in originalEvent){
 								event[name] = originalEvent[name];
 							}
-						}else{
-							// old iOS branch
-							Event.prototype = originalEvent;
-							var event = new Event;
 						}
 						// have to delegate methods to make them work
 						event.preventDefault = function(){
