@@ -492,7 +492,7 @@
 						m = getModuleInfo(p, referenceModule, true);
 						cache[m.mid] = cache[urlKeyPrefix + m.url] = item;
 					}
-					if (window) {
+					if (typeof window != "undefined") {
 						if (!window.loadedFromCache) {
 							window.loadedFromCache = {};
 						}
@@ -1482,7 +1482,7 @@
 				cached = cache[mid] || cache[urlKeyPrefix + module.url];
 				if(cached){
 					req.trace("loader-inject", ["cache", module.mid, url]);
-					if (window) {
+					if (typeof window != "undefined") {
 						window.loadedFromCache[module.mid]++;
 					}
 					
