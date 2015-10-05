@@ -149,10 +149,11 @@ var Observable = function(/*Store*/ store){
 	function whenFinished(method, action){
 		var original = store[method];
 		if(original){
-			store[method] = function(value){
+			store[method] = function(value, options){
 				var originalId;
 				if(method === 'put'){
-					originalId = store.getIdentity(value);
+					// [GTI]: use id from options if present
+					originalId = (options && "id" in options) ? options.id : store.getIdentity(value);						
 				}
 				if(inMethod){
 					// if one method calls another (like add() calling put()) we don't want two events
