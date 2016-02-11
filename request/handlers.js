@@ -22,6 +22,11 @@ define([
 		var lastParser;
 
 		handleXML = function(response){
+			if(has("native-msxml-document")) { //IE9+
+				return response.xhr.response;
+			}
+			
+			
 			var result = response.data;
 			var text = response.text;
 

@@ -42,6 +42,18 @@ define([
 		return responseType === 'blob';
 	});
 
+	has.add('native-msxml-document', function(){
+		//AR: IE9 works even if has('native-response-type') is false
+		if(!has('native-response-type') && has("ie") != 9){ return; }
+		var x = new XMLHttpRequest();
+		x.open('GET', '/', true);
+		x.responseType = 'msxml-document';
+		// will not be set if unsupported
+		var responseType = x.responseType;
+		x.abort();
+		return responseType === 'msxml-document';
+	});
+
 	// Google Chrome doesn't support "json" response type
 	// up to version 30, so it's intentionally not included here
 	var nativeResponseTypes = {
@@ -49,6 +61,7 @@ define([
 		'document': 'document',
 		'arraybuffer': 'arraybuffer'
 	};
+	if(has('native-msxml-document')){ nativeResponseTypes.xml = 'msxml-document'; }
 
 	function handleResponse(response, error){
 		var _xhr = response.xhr;
