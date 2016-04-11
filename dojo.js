@@ -1001,14 +1001,23 @@
 				}
 				// at this point, mid is an absolute mid
 
+				//AR: ===== reverted changes created by #18129, '*' always wins
+				//TODO: report & fix in betted way
 				// map the mid
-				if(!fromPendingCache && !isRelative && mapProgs.star){
-					mapItem = runMapProg(mid, mapProgs.star[1]);
-				}
-				if(!mapItem && referenceModule){
+//				if(!fromPendingCache && !isRelative && mapProgs.star){
+//					mapItem = runMapProg(mid, mapProgs.star[1]);
+//				}
+//				if(!mapItem && referenceModule){
+//					mapItem = runMapProg(referenceModule.mid, mapProgs);
+//					mapItem = mapItem && runMapProg(mid, mapItem[1]);
+//				}
+				
+				if(referenceModule){
 					mapItem = runMapProg(referenceModule.mid, mapProgs);
-					mapItem = mapItem && runMapProg(mid, mapItem[1]);
 				}
+				mapItem = mapItem || mapProgs.star;
+				mapItem = mapItem && runMapProg(mid, mapItem[1]);
+				// =========== END REVERT ============
 
 				if(mapItem){
 					mid = mapItem[1] + mid.substring(mapItem[3]);
