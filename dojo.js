@@ -664,8 +664,15 @@
 				if(config.cache){
 					consumePendingCacheInsert();
 					pendingCacheInsert = config.cache;
-					//inject now all depencies so cache is available for mapped module
-					consumePendingCacheInsert(0, !!config.cache["*noref"]);
+					
+					//AR: ===== reverted changes created by commit 3c4337021, (bug fix #18129), until we solve non built version problems
+					//TODO: report & fix in betted way
+					/*//inject now all depencies so cache is available for mapped module
+					consumePendingCacheInsert(0, !!config.cache["*noref"]);*/
+					if(config.cache["*noref"]){
+						consumePendingCacheInsert();
+					}
+					// =========== END REVERT ============
 				}
 
 				signal("config", [config, req.rawConfig]);
