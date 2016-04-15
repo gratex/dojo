@@ -1079,7 +1079,11 @@
 		},
 
 		getModuleInfo = function(mid, referenceModule, fromPendingCache){
-			return getModuleInfo_(mid, referenceModule, packs, modules, req.baseUrl, mapProgs, pathsMapProg, aliases, undefined, fromPendingCache);
+			//AR: ===== reverted changes created by commit 3c4337021, (bug fix #18129), until we solve non built version problems
+			//TODO: report & fix in betted way
+			//return getModuleInfo_(mid, referenceModule, packs, modules, req.baseUrl, mapProgs, pathsMapProg, aliases, undefined, fromPendingCache);
+			return getModuleInfo_(mid, referenceModule, packs, modules, req.baseUrl, fromPendingCache ? [] : mapProgs, fromPendingCache ? [] : pathsMapProg, fromPendingCache ? [] : aliases);
+			// =========== END REVERT ============
 		},
 
 		resolvePluginResourceId = function(plugin, prid, referenceModule){
