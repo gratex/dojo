@@ -29,6 +29,7 @@ stamp.fromISOString = function(/*String*/ formattedString, /*Number?*/ defaultTi
 	//			- THH:mm
 	//			- THH:mm:ss
 	//			- THH:mm:ss.SSS
+	//			PM: added support for times without T (RFC3339 uses T only to concat date and time parts)
 	//		- and "datetimes" which could be any combination of the above
 	//
 	//		timezones may be specified as Z (for UTC) or +/- followed by a time expression HH:mm
@@ -45,7 +46,7 @@ stamp.fromISOString = function(/*String*/ formattedString, /*Number?*/ defaultTi
 	if(!stamp._isoRegExp){
 		stamp._isoRegExp =
 //TODO: could be more restrictive and check for 00-59, etc.
-			/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(.\d+)?)?((?:[+-](\d{2}):?(\d{2}))|Z)?)?$/;
+			/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T?(\d{2}):(\d{2})(?::(\d{2})(.\d+)?)?((?:[+-](\d{2}):?(\d{2}))|Z)?)?$/;
 	}
 
 	var match = stamp._isoRegExp.exec(formattedString),
@@ -119,8 +120,9 @@ stamp.toISOString = function(/*Date*/ dateObject, /*__Options?*/ options){
 	if(options.selector != "time"){
 		var year = dateObject[getter+"FullYear"]();
 		date = ["0000".substr((year+"").length)+year, _(dateObject[getter+"Month"]()+1), _(dateObject[getter+"Date"]())].join('-');
+		// PM: time format doesnt need date part (empty string), prevent joing with T
+		formattedDate.push(date);
 	}
-	formattedDate.push(date);
 	if(options.selector != "date"){
 		var time = [_(dateObject[getter+"Hours"]()), _(dateObject[getter+"Minutes"]()), _(dateObject[getter+"Seconds"]())].join(':');
 		var millis = dateObject[getter+"Milliseconds"]();
