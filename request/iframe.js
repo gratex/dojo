@@ -312,6 +312,11 @@ define([
 						}
 					}else{
 						// 'json' and 'javascript' and 'text'
+						// AR: better error handling (otherwise we recive error - could not read 'value' of undefined)
+						var textarea = doc.getElementsByTagName('textarea')[0];
+						if(!textarea){
+							throw new Error("Response could not be read. Element <textarea> not found in response body");
+						}
 						response.text = doc.getElementsByTagName('textarea')[0].value; // text
 					}
 					handlers(response);
