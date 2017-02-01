@@ -489,8 +489,15 @@ define(["./sniff", "./_base/window","./dom", "./dom-style"],
 		// returns: Object
 
 		node = dom.byId(node);
-		var	db = win.body(node.ownerDocument),
+		var	db = win.body(node.ownerDocument);
+		var ret;
+		try{ 
+			//AR: ie10 && ie11 has bug, this ends with an error if not placed in document
+			// https://connect.microsoft.com/IE/feedback/details/829392/calling-getboundingclientrect-on-an-html-element-that-has-not-been-added-to-the-dom-causes-unspecified-error
 			ret = node.getBoundingClientRect();
+		}catch(e){
+			ret = {left: 0, top: 0, right: 0, bottom: 0};
+		}
 		ret = {x: ret.left, y: ret.top, w: ret.right - ret.left, h: ret.bottom - ret.top};
 
 		if(has("ie") < 9){
@@ -528,7 +535,14 @@ define(["./sniff", "./_base/window","./dom", "./dom-style"],
 
 		node = dom.byId(node);
 		var me = geom.getMarginExtents(node, computedStyle || style.getComputedStyle(node));
-		var size = node.getBoundingClientRect();
+		var size;
+		try{ 
+			//AR: ie10 && ie11 has bug, this ends with an error if not placed in document, TODO: report & pull req
+			// https://connect.microsoft.com/IE/feedback/details/829392/calling-getboundingclientrect-on-an-html-element-that-has-not-been-added-to-the-dom-causes-unspecified-error
+			size = node.getBoundingClientRect();
+		}catch(e){
+			size = {left: 0, top: 0, right: 0, bottom: 0};
+		}
 		return {
 			w: (size.right - size.left) + me.w,
 			h: (size.bottom - size.top) + me.h
