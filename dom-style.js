@@ -45,8 +45,12 @@ define(["./sniff", "./dom"], function(has, dom){
 		};
 	}else{
 		getComputedStyle = function(node){
-			return node.nodeType == 1 /* ELEMENT_NODE*/ ?
-				node.ownerDocument.defaultView.getComputedStyle(node, null) : {};
+			try {
+				return node.nodeType == 1 /* ELEMENT_NODE*/ ?
+					node.ownerDocument.defaultView.getComputedStyle(node, null) : {};
+			} catch(e) {
+				throw new Error("Failed to get computed style for " + Object.prototype.toString.call(node) + " (" + e.message + ")");
+			}
 		};
 	}
 	style.getComputedStyle = getComputedStyle;
