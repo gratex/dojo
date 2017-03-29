@@ -275,7 +275,10 @@ define([
 						extra = ioQuery.objectToQuery(extra);
 					}
 				}
-				var tmpUrl = response.url + (response.url.indexOf('?') > -1 ? '&' : '?') + extra;
+				var tmpUrl = response.url;
+				if(extra){ //AR: do not add '?' or '&' if no extra, there may be queries, which will be broken after adding '&'
+					tmpUrl += (response.url.indexOf('?') > -1 ? '&' : '?') + extra;
+				}
 				notify && notify.emit('send', response, dfd.promise.cancel);
 				iframe._notifyStart(response);
 				iframe.setSrc(iframe._frame, tmpUrl, true);
