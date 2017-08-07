@@ -11,10 +11,12 @@ define([
 	'../dom',
 	'../dom-construct',
 	'../_base/window',
-	'../NodeList-dom'/*=====,
+	'../string',
+	'../NodeList-dom'
+	/*=====,
 	'../request',
 	'../_base/declare' =====*/
-], function(module, require, watch, util, handlers, lang, ioQuery, query, has, dom, domConstruct, win/*=====, NodeList, request, declare =====*/){
+], function(module, require, watch, util, handlers, lang, ioQuery, query, has, dom, domConstruct, win, string/*=====, NodeList, request, declare =====*/){
 	var mid = module.id.replace(/[\/\.\-]/g, '_'),
 		onload = mid + '_onload';
 
@@ -318,7 +320,14 @@ define([
 						// AR: better error handling (otherwise we recive error - could not read 'value' of undefined)
 						var textarea = doc.getElementsByTagName('textarea')[0];
 						if(!textarea){
-							throw new Error("Response could not be read. Element <textarea> not found in response body");
+							var message = "Response could not be read. Element <textarea> not found in response body";
+							try {
+								message += string.substitute("\n\nResponse title: ${0}", [doc.title || ""]);
+								message += string.substitute("\n\nResponse body: ${0}", [doc.body.innerHTML || ""]);
+							} catch(e) {
+								//do nothing, there is nothing more in payload to add to message
+							}
+							throw new Error(message);
 						}
 						response.text = doc.getElementsByTagName('textarea')[0].value; // text
 					}
