@@ -17,7 +17,8 @@ define(
 	"GBP_displayName": "britská libra",
 	"GBP_symbol": "£",
 	"AUD_symbol": "AU$",
-	"EUR_displayName": "euro"
+	"EUR_displayName": "euro",
+	"CZK_symbol": "Kč"
 }
 //end v1.x content
 );
