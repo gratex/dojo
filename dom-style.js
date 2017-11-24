@@ -39,9 +39,13 @@ define(["./sniff", "./dom"], function(has, dom){
 		};
 	}else if(has("ie") && (has("ie") < 9 || has("quirks"))){
 		getComputedStyle = function(node){
-			// IE (as of 7) doesn't expose Element like sane browsers
-			// currentStyle can be null on IE8!
-			return node.nodeType == 1 /* ELEMENT_NODE*/ && node.currentStyle ? node.currentStyle : {};
+			try {
+				// IE (as of 7) doesn't expose Element like sane browsers
+				// currentStyle can be null on IE8!
+				return node.nodeType == 1 /* ELEMENT_NODE*/ && node.currentStyle ? node.currentStyle : {};
+			} catch(e) {
+				throw new Error("Failed to get computed style for " + Object.prototype.toString.call(node) + " (" + e.message + ")");
+			}
 		};
 	}else{
 		getComputedStyle = function(node){
