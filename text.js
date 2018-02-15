@@ -146,7 +146,7 @@ define(["./_base/kernel", "require", "./has", "./has!host-browser?./request"], f
 		}
 	};
 
-	return {
+	var textModule = {
 		// summary:
 		//		This module implements the dojo/text! plugin and the dojo.cache API.
 		// description:
@@ -159,6 +159,8 @@ define(["./_base/kernel", "require", "./has", "./has!host-browser?./request"], f
 
 		// the dojo/text caches it's own resources because of dojo.cache
 		dynamic: true,
+		
+		getText: getText,
 
 		normalize: function(id, toAbsMid){
 			// id is something like (path may be relative):
@@ -204,7 +206,7 @@ define(["./_base/kernel", "require", "./has", "./has!host-browser?./request"], f
 					pending[url].push(finish);
 				}else{
 					var pendingList = pending[url] = [finish];
-					getText(url, !require.async, function(text){
+					textModule.getText(url, !require.async, function(text){
 						theCache[absMid]= theCache[url]= text;
 						for(var i = 0; i<pendingList.length;){
 							pendingList[i++](text);
@@ -217,5 +219,6 @@ define(["./_base/kernel", "require", "./has", "./has!host-browser?./request"], f
 			}
 		}
 	};
+	return textModule;
 
 });
