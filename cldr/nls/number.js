@@ -36,6 +36,7 @@ define({ root:
 	"el": true,
 	"en": true,
 	"en-au": true,
+	"en-gb": true,
 	"es": true,
 	"fi": true,
 	"fr": true,
