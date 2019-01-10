@@ -20,8 +20,18 @@ define([
 	var mid = module.id.replace(/[\/\.\-]/g, '_'),
 		onload = mid + '_onload';
 
+	var blankUrl = has('config-dojoBlankHtmlUrl') || require.toUrl('dojo/resources/blank.html');
+
 	if(!win.global[onload]){
 		win.global[onload] = function(){
+
+			// AR: chrome started to execute initial load of blank GET request, which causes on load on unexpected places
+			// e.g. onLoad of downloaded file, which should not occure
+			if(~iframe._frame.src.indexOf(blankUrl)){
+				// this is onLoad of initial request to blank page
+				return;
+			}
+
 			var dfd = iframe._currentDfd;
 			if(!dfd){
 				iframe._fireNextRequest();
@@ -85,7 +95,7 @@ define([
 					' please save dojo/resources/blank.html to your domain and set dojoConfig.dojoBlankHtmlUrl' +
 					' to the path on your domain to blank.html');
 			}
-			uri = (has('config-dojoBlankHtmlUrl')||require.toUrl('dojo/resources/blank.html'));
+			uri = blankUrl;
 		}
 
 		var frame = domConstruct.place(
