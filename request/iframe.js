@@ -25,13 +25,6 @@ define([
 	if(!win.global[onload]){
 		win.global[onload] = function(){
 
-			// AR: chrome started to execute initial load of blank GET request, which causes on load on unexpected places
-			// e.g. onLoad of downloaded file, which should not occure
-			if(~iframe._frame.src.indexOf(blankUrl)){
-				// this is onLoad of initial request to blank page
-				return;
-			}
-
 			var dfd = iframe._currentDfd;
 			if(!dfd){
 				iframe._fireNextRequest();
@@ -454,5 +447,9 @@ define([
 
 	util.addCommonMethods(iframe, ['GET', 'POST']);
 
+	// AR: chrome started to execute initial load of blank GET request, which causes on load on unexpected places
+	// e.g. onLoad of downloaded file, which should not occure
+	// so do the initial blank request now, to prevent problems in future calls
+	iframe.get(blankUrl, {handleAs: 'html'});
 	return iframe;
 });
