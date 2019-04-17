@@ -177,9 +177,13 @@ return declare("dojo.Stateful", null, {
 			callbacks = this._watchCallbacks = function(name, oldValue, value, ignoreCatchall){
 				var notify = function(propertyCallbacks){
 					if(propertyCallbacks){
-						propertyCallbacks = propertyCallbacks.slice();
-						for(var i = 0, l = propertyCallbacks.length; i < l; i++){
-							propertyCallbacks[i].call(self, name, oldValue, value);
+						var propertyCallbacksCopy = propertyCallbacks.slice();
+						for(var i = 0, l = propertyCallbacksCopy.length; i < l; i++){
+							if(~propertyCallbacks.indexOf(propertyCallbacksCopy[i])){
+								// AR: property callback may have been removed by previous callback
+								// so only if it still exists, call it
+								propertyCallbacksCopy[i].call(self, name, oldValue, value);
+							}
 						}
 					}
 				};
