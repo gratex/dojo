@@ -17,6 +17,8 @@ define(["./dom-geometry", "./_base/lang", "./domReady", "./sniff", "./_base/wind
 		//		In addition, browser, browser version, and box model are
 		//		combined with an RTL flag when browser text is RTL. ex: dj_ie-rtl.
 		//
+		//		AR: added also webdriver
+		//
 		//		Returns the has() method.
 	};
 	=====*/
@@ -46,7 +48,10 @@ define(["./dom-geometry", "./_base/lang", "./domReady", "./sniff", "./_base/wind
 			"dj_gecko": has("mozilla"),
 
 			"dj_ios": has("ios"),
-			"dj_android": has("android")
+			"dj_android": has("android"),
+			
+			// AR: added webdriver
+			"dj_webdriver": has("webdriver")
 		}; // no dojo unsupported browsers
 
 	if(ie){

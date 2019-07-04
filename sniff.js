@@ -46,6 +46,10 @@ define(["./has"], function(has){
 		has.add("trident", parseFloat(dav.split("Trident/")[1]) || undefined);
 
 		has.add("svg", typeof SVGAngle !== "undefined");
+		
+		// AR: added webdriver
+		has.add("webdriver", navigator.webdriver);
+		
 
 		if(!has("webkit")){
 			// Opera
