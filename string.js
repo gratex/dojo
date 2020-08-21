@@ -145,10 +145,14 @@ string.substitute = function(	/*String*/		template,
 				return '$';
 			}
 			var value = lang.getObject(key, false, map);
-			if(format){
-				value = lang.getObject(format, false, thisObject).call(thisObject, value, key);
+			try {
+				if(format){
+					value = lang.getObject(format, false, thisObject).call(thisObject, value, key);
+				}
+				return transform(value, key).toString();
+			} catch(e){
+				throw new Error("Cannot fill ${" + key + "} with '" + value + "'. " + e.message);
 			}
-			return transform(value, key).toString();
 		}); // String
 };
 
