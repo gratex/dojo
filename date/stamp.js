@@ -133,7 +133,12 @@ stamp.toISOString = function(/*Date*/ dateObject, /*__Options?*/ options){
 			time += "Z";
 		}else if(options.selector != "time"){
 			var timezoneOffset = dateObject.getTimezoneOffset();
-			var absOffset = Math.abs(timezoneOffset);
+			// getTimezoneOffset() is not guaranteed to be integral: historical LMT
+			// offsets carry seconds (Firefox returns e.g. -76.33333333333333) and
+			// whole-minute offsets may contain float noise (e.g. 179.99999999956577).
+			// The ISO offset is HH:MM, so round to whole minutes before splitting it;
+			// floor would turn 179.9999999996 into 179 (-02:59).
+			var absOffset = Math.round(Math.abs(timezoneOffset));
 			time += (timezoneOffset > 0 ? "-" : "+") +
 				_(Math.floor(absOffset/60)) + ":" + _(absOffset%60);
 		}
