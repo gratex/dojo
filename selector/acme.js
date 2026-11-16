@@ -1265,7 +1265,10 @@ define([
 			};
 		}else{
 			// DOM branch
-			var parts = query.match(/([^\s,](?:"(?:\\.|[^"])+"|'(?:\\.|[^'])+'|[^,])*)/g);
+			// GHAS js/redos fix: make the escape alternatives disjoint ([^"\\] / [^'\\])
+			// so quoted segments cannot be split exponentially many ways.
+			// Generated/modified by AI Kilo Code 7.8.18-gratex-027, used model gti-litellm/mimo-2.6-flash
+			var parts = query.match(/([^\s,](?:"(?:\\.|[^"\\])+"|'(?:\\.|[^'\\])+'|[^,])*)/g);
 			return _queryFuncCacheDOM[query] = ((parts.length < 2) ?
 				// if not a compound query (e.g., ".foo, .bar"), cache and return a dispatcher
 				getStepQueryFunc(query) :
